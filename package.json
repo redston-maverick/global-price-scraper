@@ -1,5 +1,5 @@
 {
-  "name": "global-price-scraper",
+  "name": "price-scraper-redston",
   "version": "1.0.0",
   "description": "A generic tool to fetch product prices from multiple websites across different countries",
   "main": "src/server.js",
