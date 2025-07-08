@@ -280,41 +280,21 @@
         // Display search metadata
         function displayMetadata(metadata) {
             const metadataDiv = document.getElementById('searchMetadata');
-            
-            const statsHtml = metadata.priceStatistics ? `
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                    <div class="text-center">
-                        <div class="text-2xl font-bold text-green-600">${metadata.priceStatistics.min}</div>
-                        <div class="text-sm text-gray-600">Lowest Price</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-2xl font-bold text-red-600">${metadata.priceStatistics.max}</div>
-                        <div class="text-sm text-gray-600">Highest Price</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-2xl font-bold text-blue-600">${metadata.priceStatistics.average}</div>
-                        <div class="text-sm text-gray-600">Average Price</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-2xl font-bold text-purple-600">${metadata.totalResults}</div>
-                        <div class="text-sm text-gray-600">Results Found</div>
-                    </div>
-                </div>
-            ` : '';
 
             metadataDiv.innerHTML = `
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-xl font-semibold text-gray-800">Search Results for "${metadata.query}"</h3>
                         <p class="text-gray-600">Country: ${metadata.country} | Processing Time: ${metadata.processingTime}ms</p>
-                        <p class="text-sm text-gray-500">Sites searched: ${metadata.sitesUsed.join(', ')}</p>
+                        <p class="text-sm text-gray-500">Sites searched: ${metadata.sitesSearched || 0} websites</p>
+                        ${metadata.demoMode ? '<p class="text-xs text-orange-600 font-medium">Demo Mode - Showing sample data</p>' : ''}
                     </div>
                     <div class="text-right">
                         <div class="text-lg font-bold text-blue-600">${metadata.totalResults} Results</div>
                         <div class="text-sm text-gray-500">from ${metadata.sitesSearched} websites</div>
+                        <div class="text-xs text-gray-500 mt-1">${metadata.message}</div>
                     </div>
                 </div>
-                ${statsHtml}
             `;
         }
 
@@ -333,53 +313,50 @@
                 return;
             }
 
-            grid.innerHTML = products.map(product => `
+            grid.innerHTML = products.map((product, index) => `
                 <div class="result-card bg-white rounded-lg shadow-lg overflow-hidden">
                     <div class="relative">
                         ${product.image ? `
-                            <img src="${product.image}" alt="${product.productName}" class="w-full h-48 object-cover">
+                            <img src="${product.image}" alt="${product.name}" class="w-full h-48 object-cover">
                         ` : `
                             <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
                                 <i class="fas fa-image text-4xl text-gray-400"></i>
                             </div>
                         `}
                         <div class="absolute top-2 left-2">
-                            <span class="bg-blue-600 text-white px-2 py-1 rounded text-sm font-medium">#${product.rank}</span>
+                            <span class="bg-blue-600 text-white px-2 py-1 rounded text-sm font-medium">#${index + 1}</span>
                         </div>
-                        ${product.savings && product.savings.percentage > 0 ? `
+                        ${product.availability === 'In Stock' ? `
                             <div class="absolute top-2 right-2">
                                 <span class="bg-green-600 text-white px-2 py-1 rounded text-sm font-medium">
-                                    ${product.savings.percentage}% OFF
+                                    In Stock
+                                </span>
+                            </div>
+                        ` : product.availability === 'Limited Stock' ? `
+                            <div class="absolute top-2 right-2">
+                                <span class="bg-orange-600 text-white px-2 py-1 rounded text-sm font-medium">
+                                    Limited Stock
                                 </span>
                             </div>
                         ` : ''}
                     </div>
                     
                     <div class="p-4">
-                        <h4 class="font-semibold text-gray-800 mb-2 line-clamp-2">${product.productName}</h4>
+                        <h4 class="font-semibold text-gray-800 mb-2 line-clamp-2">${product.name}</h4>
                         
                         <div class="flex items-center justify-between mb-3">
                             <div class="text-2xl font-bold text-green-600">${product.price}</div>
-                            <div class="text-sm text-gray-500">${product.source}</div>
+                            <div class="text-sm text-gray-500">${product.site}</div>
                         </div>
-
-                        ${Object.keys(product.specifications || {}).length > 0 ? `
-                            <div class="mb-3">
-                                <div class="text-xs text-gray-500 mb-1">Specifications:</div>
-                                <div class="flex flex-wrap gap-1">
-                                    ${Object.entries(product.specifications).map(([key, value]) => 
-                                        `<span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">${value}</span>`
-                                    ).join('')}
-                                </div>
-                            </div>
-                        ` : ''}
 
                         <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
                             <span>Trust Score: ${(product.trustScore * 100).toFixed(0)}%</span>
-                            <span>Relevance: ${(product.relevanceScore * 100).toFixed(0)}%</span>
+                            <span class="font-medium text-${product.availability === 'In Stock' ? 'green' : product.availability === 'Limited Stock' ? 'orange' : 'red'}-600">
+                                ${product.availability}
+                            </span>
                         </div>
 
-                        <a href="${product.link}" target="_blank" rel="noopener noreferrer" 
+                        <a href="${product.url}" target="_blank" rel="noopener noreferrer" 
                            class="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-2 rounded transition duration-200">
                             <i class="fas fa-external-link-alt mr-2"></i>
                             View Product
