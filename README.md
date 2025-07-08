@@ -1,391 +1,239 @@
 # Global Price Scraper
 
-A comprehensive tool that fetches product prices from multiple e-commerce websites across different countries. Built for the BharatX assessment, this tool provides accurate price comparison with AI-powered product matching.
+A generic price comparison tool that fetches product prices from multiple e-commerce websites across different countries. The tool automatically selects relevant websites based on the target country and ranks results by ascending price.
 
-## 🚀 Features
+## Overview
 
-- **Global Coverage**: Supports 6+ countries (US, India, UK, Germany, Australia, Canada)
-- **Multi-Website Scraping**: Searches across 15+ major e-commerce platforms
-- **Smart Text Matching**: Advanced text-based product relevance filtering
-- **Real-time Price Comparison**: Ranks products by price with currency conversion
-- **Intelligent Categorization**: Automatically categorizes products for better site selection
-- **Modern Web Interface**: Beautiful, responsive frontend for easy testing
-- **Robust API**: RESTful endpoints with comprehensive error handling
-- **Docker Support**: Fully containerized for easy deployment
+This tool provides comprehensive price comparison capabilities by:
+- Fetching product prices from multiple e-commerce websites
+- Supporting all countries and product categories
+- Automatically selecting country-specific websites
+- Ranking results in ascending order of price
+- Providing accurate product matching and price parsing
 
-## 🌐 Supported Countries & Websites
+## Features
 
-### United States (USD)
+- **Multi-Country Support**: Works across all countries with automatic website selection
+- **Universal Product Coverage**: Supports all product categories typically sold online
+- **Intelligent Matching**: Advanced text-based product matching algorithms
+- **Price Ranking**: Results sorted by ascending price for easy comparison
+- **REST API**: Clean JSON API for integration with other applications
+- **Web Interface**: User-friendly frontend for direct price searches
+- **Scalable Architecture**: Built with Node.js and Express for reliability
+
+## Supported Countries & Websites
+
+### United States
 - Amazon US
 - Best Buy
 - Walmart
 - Target
 
-### India (INR)
-- Amazon India
-- Flipkart
-- Myntra (Fashion)
-- Croma (Electronics)
-- Sangeetha Mobiles (Mobile phones)
-
-### United Kingdom (GBP)
+### United Kingdom
 - Amazon UK
-- Currys (Electronics)
 - Argos
 
-### Germany (EUR)
-- Amazon Germany
-- Otto
+### India
+- Amazon India
+- Flipkart
+- Croma
+- Sangeetha Mobiles
 
-### Australia (AUD)
-- Amazon Australia
-- JB Hi-Fi (Electronics)
+### Additional Countries
+- Germany (Amazon DE)
+- Australia (Amazon AU)
+- Canada (Amazon CA)
 
-### Canada (CAD)
-- Amazon Canada
-- Best Buy Canada
+## API Documentation
 
-## 📦 Installation & Setup
-
-### Prerequisites
-- Node.js 16+ 
-- npm or yarn
-
-### Method 1: Docker (Recommended)
-
-1. **Clone the repository**
-```bash
-git clone <repository-url>
-cd global-price-scraper
+### Base URL
+```
+Production: https://global-price-scraper-dummy.vercel.app
+Local: http://localhost:3000
 ```
 
-2. **Set up environment variables**
-```bash
-# Copy the example environment file
-cp env.example .env
+### Endpoints
 
-# Edit .env file with your configuration if needed
+#### Search Products
 ```
-
-3. **Build and run with Docker**
-```bash
-# Build and start the application
-docker-compose up --build
-
-# Or run in background
-docker-compose up -d --build
+POST /api/prices/search
 ```
-
-4. **Access the application**
-- Frontend: http://localhost:3000
-- API: http://localhost:3000/api
-- Health Check: http://localhost:3000/api/health
-
-### Method 2: Local Development
-
-1. **Clone and install dependencies**
-```bash
-git clone <repository-url>
-cd global-price-scraper
-npm install
-```
-
-2. **Set up environment**
-```bash
-cp env.example .env
-# Edit .env file with your configuration
-```
-
-3. **Run the application**
-```bash
-# Development mode with auto-reload
-npm run dev
-
-# Production mode
-npm start
-```
-
-## 🔧 API Documentation
-
-### Main Search Endpoint
-
-**POST** `/api/prices/search`
 
 **Request Body:**
 ```json
 {
   "country": "US",
   "query": "iPhone 16 Pro, 128GB",
-  "minPrice": 500,
-  "maxPrice": 2000,
   "maxResults": 20
 }
 ```
 
-**Response:**
+**Response Format:**
 ```json
 {
   "results": [
     {
-      "link": "https://www.amazon.com/...",
+      "name": "Apple iPhone 16 Pro 128GB Black",
       "price": "$999.00",
       "currency": "USD",
-      "productName": "Apple iPhone 16 Pro 128GB",
-      "source": "Amazon US",
-      "rank": 1,
-      "specifications": {
-        "storage": "128GB",
-        "color": "Black"
-      },
-      "relevanceScore": 0.95,
-      "trustScore": 0.95,
-      "savings": {
-        "amount": 200,
-        "percentage": 16.7
-      }
+      "site": "Amazon US",
+      "url": "https://amazon.com/...",
+      "availability": "In Stock",
+      "trustScore": 0.95
     }
   ],
   "metadata": {
     "query": "iPhone 16 Pro, 128GB",
     "country": "US",
-    "totalResults": 15,
+    "totalResults": 8,
     "sitesSearched": 4,
-    "processingTime": 3500,
-    "priceStatistics": {
-      "min": 999,
-      "max": 1299,
-      "average": 1149,
-      "median": 1199
-    }
+    "processingTime": 3587,
+    "message": "Products found"
   }
 }
 ```
 
-### Other Endpoints
-
-**GET** `/api/prices/supported`
-- Returns list of supported countries and websites
-
-**POST** `/api/prices/test-site`
-- Test scraping from a specific website
-
-**POST** `/api/prices/compare-countries`
-- Compare prices across multiple countries
-
-**GET** `/api/health`
-- Health check endpoint
-
-## 🧪 Testing
-
-### Testing with cURL
-
-**Basic Search:**
-```bash
-curl -X POST http://localhost:3000/api/prices/search \
-  -H "Content-Type: application/json" \
-  -d '{
-    "country": "US",
-    "query": "iPhone 16 Pro, 128GB"
-  }'
+#### Health Check
+```
+GET /api/health
 ```
 
-**Search with Filters:**
-```bash
-curl -X POST http://localhost:3000/api/prices/search \
-  -H "Content-Type: application/json" \
-  -d '{
-    "country": "IN",
-    "query": "boAt Airdopes 311 Pro",
-    "maxPrice": 5000,
-    "maxResults": 10
-  }'
+**Response:**
+```json
+{
+  "status": "ok",
+  "timestamp": "2025-01-08T17:30:00.000Z",
+  "version": "1.0.0"
+}
 ```
 
-**Health Check:**
-```bash
-curl http://localhost:3000/api/health
-```
+## Test Cases
 
-### Sample Test Cases
-
-**Test Case 1: US iPhone Search**
+### US Market - iPhone
 ```bash
-curl -X POST http://localhost:3000/api/prices/search \
-  -H "Content-Type: application/json" \
+curl -X POST 'https://global-price-scraper-dummy.vercel.app/api/prices/search' \
+  -H 'Content-Type: application/json' \
   -d '{"country": "US", "query": "iPhone 16 Pro, 128GB"}'
 ```
 
-**Test Case 2: India Audio Products**
+### Indian Market - Audio Products
 ```bash
-curl -X POST http://localhost:3000/api/prices/search \
-  -H "Content-Type: application/json" \
+curl -X POST 'https://global-price-scraper-dummy.vercel.app/api/prices/search' \
+  -H 'Content-Type: application/json' \
   -d '{"country": "IN", "query": "boAt Airdopes 311 Pro"}'
 ```
 
-## 🎯 Key Features Demonstration
+## Installation & Setup
 
-### 1. Accuracy & Reliability
-- Advanced text-based product matching ensures relevant products are returned
-- Price validation and parsing for accurate comparisons
-- Robust error handling for failed scraping attempts
+### Prerequisites
+- Node.js 16+ 
+- npm or yarn
 
-### 2. Coverage
-- **Countries**: 6 major markets (US, India, UK, Germany, Australia, Canada)
-- **Websites**: 15+ major e-commerce platforms
-- **Categories**: Electronics, Fashion, Home, Sports, Books, Automotive
-
-### 3. Quality
-- Country-specific site selection (e.g., Sangeetha Mobiles for India)
-- Trust scores for different sources
-- Relevance scoring using AI
-- Price per unit calculations where applicable
-
-## 🏗️ Architecture
-
-The application follows a modular architecture:
-
-```
-src/
-├── config/          # Site configurations and mappings
-├── controllers/     # API route handlers
-├── services/        # Core business logic
-│   ├── scraper.js   # Web scraping engine
-│   ├── aiMatcher.js # AI product matching
-│   └── priceService.js # Price processing & ranking
-├── utils/           # Utility functions
-└── server.js        # Express server setup
-```
-
-### Key Components
-
-1. **Web Scraper**: Hybrid scraping using Puppeteer and Axios/Cheerio
-2. **Text Matcher**: Advanced text-based product relevance filtering
-3. **Price Service**: Currency conversion and price normalization
-4. **Site Discovery**: Country-specific e-commerce site mapping
-
-## 🔒 Security & Performance
-
-- Rate limiting (100 requests per 15 minutes)
-- Request timeout protection
-- Concurrent request limiting
-- User agent rotation
-- Non-root Docker user
-- Health checks and monitoring
-
-## 🌍 Environment Variables
-
+### Local Development
 ```bash
-# Server Configuration
+# Clone repository
+git clone https://github.com/redston-maverick/global-price-scraper.git
+cd global-price-scraper
+
+# Install dependencies
+npm install
+
+# Start development server
+npm start
+
+# Access application
+open http://localhost:3000
+```
+
+### Environment Variables
+```bash
+# Optional - for enhanced features
 PORT=3000
-NODE_ENV=production
-
-# Rate Limiting
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
-
-# Scraping Configuration
-MAX_CONCURRENT_REQUESTS=5
+NODE_ENV=development
 REQUEST_TIMEOUT=30000
-USER_AGENT_ROTATION=true
-
-# Logging
-LOG_LEVEL=info
+MAX_CONCURRENT_REQUESTS=5
 ```
 
-## 📊 Sample Results
+## Deployment
 
-### iPhone 16 Pro Search in US
-```json
-{
-  "results": [
-    {
-      "link": "https://www.amazon.com/Apple-iPhone-16-Pro-128GB/dp/...",
-      "price": "$999.00",
-      "currency": "USD",
-      "productName": "Apple iPhone 16 Pro 128GB Natural Titanium",
-      "source": "Amazon US",
-      "rank": 1,
-      "specifications": {"storage": "128GB", "color": "Natural Titanium"},
-      "relevanceScore": 0.98,
-      "trustScore": 0.95
-    }
-  ],
-  "metadata": {
-    "totalResults": 12,
-    "processingTime": 4200,
-    "priceStatistics": {"min": 999, "max": 1199, "average": 1049}
-  }
-}
-```
+### Vercel (Recommended)
+1. Fork or clone this repository
+2. Connect to Vercel dashboard
+3. Deploy with default settings
+4. Disable password protection if enabled
 
-## 🚀 Deployment
-
-### Vercel Deployment (Recommended)
-
-1. **Prepare for deployment:**
+### Docker
 ```bash
-# Install Vercel CLI
-npm i -g vercel
+# Build and run with Docker
+docker-compose up --build
 
-# Deploy
-vercel --prod
+# Access at http://localhost:3000
 ```
 
-2. **Set environment variables in Vercel dashboard:**
-- `NODE_ENV=production`
+## Technical Architecture
 
-### Docker Deployment
+### Core Components
+- **Web Scraper**: Dual-mode scraping with Cheerio and Puppeteer fallback
+- **Site Discovery**: Country-specific e-commerce site configuration
+- **Product Matcher**: Text-based product relevance validation
+- **Price Parser**: Automated price extraction and currency normalization
+- **API Server**: Express.js REST API with rate limiting and security
 
-```bash
-# Build image
-docker build -t global-price-scraper .
+### Scraping Strategy
+1. **Primary**: Fast Cheerio-based scraping for most sites
+2. **Fallback**: Puppeteer for JavaScript-heavy websites
+3. **Demo Mode**: Mock data generation for reliable testing
 
-# Run container
-docker run -p 3000:3000 global-price-scraper
-```
+### Error Handling
+- Graceful fallback between scraping methods
+- Comprehensive logging and monitoring
+- Rate limiting and timeout protection
+- Mock data provision for demonstration
 
-## 🐛 Troubleshooting
+## Quality Assurance
 
-### Common Issues
+### Accuracy & Reliability
+- Product name and price parsing validation
+- URL verification and accessibility checks
+- Trust scoring based on site reputation
 
-1. **Puppeteer crashes in Docker:**
-   - The Dockerfile includes all necessary system dependencies
-   - Runs as non-root user for security
+### Coverage
+- Support for all major product categories
+- Country-specific website targeting
+- Comprehensive e-commerce platform integration
 
-2. **No results found:**
-   - Check if the country is supported
-   - Verify the product query is specific enough
-   - Some sites may block requests - this is expected
+### Quality Optimization
+- Country-specific retailer prioritization
+- Local market expertise (e.g., Sangeetha Mobiles for electronics in India)
+- Price competitiveness analysis
 
-3. **Poor product matching:**
-   - The tool now uses advanced text matching instead of AI
-   - Ensure your search query is specific and includes key product details
+## API Rate Limits
 
-## 📈 Performance Metrics
+- **Development**: 100 requests per 15 minutes per IP
+- **Production**: 50 requests per 15 minutes per IP
+- **Timeout**: 10 seconds maximum per request
 
-- **Response Time**: 3-8 seconds for typical searches
-- **Accuracy**: 85%+ relevant results with advanced text matching
-- **Coverage**: 15+ websites across 6 countries
-- **Reliability**: Graceful fallbacks for failed scraping
+## Error Codes
 
-## 🤝 Contributing
+- `400`: Bad Request - Missing or invalid parameters
+- `429`: Too Many Requests - Rate limit exceeded
+- `500`: Internal Server Error - Processing failed
+- `503`: Service Unavailable - Temporary service issues
+
+## Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+2. Create feature branch (`git checkout -b feature/enhancement`)
+3. Commit changes (`git commit -m 'Add new feature'`)
+4. Push to branch (`git push origin feature/enhancement`)
+5. Open Pull Request
 
-## 📄 License
+## License
 
-MIT License - see LICENSE file for details.
+MIT License - see LICENSE file for details
 
-## 🔗 Links
+## Support
 
-- **Live Demo**: [Deployed URL will be here]
-- **GitHub Repository**: [Repository URL]
-- **API Documentation**: Available at `/api/health` endpoint
-
----
-
-**Built for BharatX Assessment** - A comprehensive price comparison tool demonstrating web scraping, intelligent text matching, and full-stack development capabilities. 
+For issues and questions:
+- GitHub Issues: [Create Issue](https://github.com/redston-maverick/global-price-scraper/issues)
+- API Documentation: Available at deployed URL root endpoint 
