@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Price Scraper - Find Best Prices Worldwide</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .result-card {
+            transition: all 0.3s ease;
+        }
+        .result-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-lg">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-search-dollar text-3xl text-blue-600"></i>
+                    <h1 class="text-2xl font-bold text-gray-800">Global Price Scraper</h1>
+                </div>
+                <div class="text-sm text-gray-600">
+                    Find the best prices across multiple countries and websites
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Search Section -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Search for Products</h2>
+            <form id="searchForm" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="country" class="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                        <select id="country" name="country" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Select Country</option>
+                            <option value="US">United States (USD)</option>
+                            <option value="IN">India (INR)</option>
+                            <option value="GB">United Kingdom (GBP)</option>
+                            <option value="DE">Germany (EUR)</option>
+                            <option value="AU">Australia (AUD)</option>
+                            <option value="CA">Canada (CAD)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="query" class="block text-sm font-medium text-gray-700 mb-2">Product Search</label>
+                        <input type="text" id="query" name="query" required placeholder="e.g., iPhone 16 Pro, 128GB" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="minPrice" class="block text-sm font-medium text-gray-700 mb-2">Min Price (Optional)</label>
+                        <input type="number" id="minPrice" name="minPrice" placeholder="0" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label for="maxPrice" class="block text-sm font-medium text-gray-700 mb-2">Max Price (Optional)</label>
+                        <input type="number" id="maxPrice" name="maxPrice" placeholder="1000" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label for="maxResults" class="block text-sm font-medium text-gray-700 mb-2">Max Results</label>
+                        <select id="maxResults" name="maxResults" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="10">10 Results</option>
+                            <option value="20" selected>20 Results</option>
+                            <option value="50">50 Results</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex space-x-4">
+                    <button type="submit" class="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md transition duration-200">
+                        <i class="fas fa-search"></i>
+                        <span>Search Prices</span>
+                    </button>
+                    <button type="button" id="sampleSearch" class="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md transition duration-200">
+                        <i class="fas fa-magic"></i>
+                        <span>Try Sample</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Loading Section -->
+        <div id="loadingSection" class="hidden bg-white rounded-lg shadow-lg p-6 mb-8">
+            <div class="flex items-center justify-center space-x-3">
+                <i class="fas fa-spinner loading-spinner text-2xl text-blue-600"></i>
+                <span class="text-lg">Searching for best prices...</span>
+            </div>
+            <div id="loadingProgress" class="mt-4 text-sm text-gray-600 text-center">
+                Initializing search...
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsSection" class="hidden">
+            <!-- Metadata -->
+            <div id="searchMetadata" class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                <!-- Will be populated with search metadata -->
+            </div>
+
+            <!-- Results Grid -->
+            <div id="resultsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Results will be populated here -->
+            </div>
+        </div>
+
+        <!-- Error Section -->
+        <div id="errorSection" class="hidden bg-red-50 border border-red-200 rounded-lg p-6 mb-8">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-exclamation-triangle text-red-600"></i>
+                <h3 class="text-lg font-semibold text-red-800">Error</h3>
+            </div>
+            <p id="errorMessage" class="mt-2 text-red-700"></p>
+        </div>
+
+        <!-- Sample Queries -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Sample Queries to Try</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="p-4 bg-gray-50 rounded-lg">
+                    <h4 class="font-medium text-gray-800">Electronics</h4>
+                    <ul class="mt-2 space-y-1 text-sm text-gray-600">
+                        <li>• iPhone 16 Pro, 128GB</li>
+                        <li>• Samsung Galaxy S24</li>
+                        <li>• MacBook Air M2</li>
+                        <li>• Sony WH-1000XM5</li>
+                    </ul>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-lg">
+                    <h4 class="font-medium text-gray-800">Fashion & Accessories</h4>
+                    <ul class="mt-2 space-y-1 text-sm text-gray-600">
+                        <li>• boAt Airdopes 311 Pro</li>
+                        <li>• Nike Air Max 270</li>
+                        <li>• Ray-Ban Wayfarer</li>
+                        <li>• Apple Watch Series 9</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <p>&copy; 2024 Global Price Scraper. Built for BharatX Assessment.</p>
+            <p class="mt-2 text-gray-400">Advanced price comparison with intelligent text matching across global e-commerce platforms.</p>
+        </div>
+    </footer>
+
+    <script>
+        // DOM Elements
+        const searchForm = document.getElementById('searchForm');
+        const loadingSection = document.getElementById('loadingSection');
+        const resultsSection = document.getElementById('resultsSection');
+        const errorSection = document.getElementById('errorSection');
+        const sampleSearchBtn = document.getElementById('sampleSearch');
+        const loadingProgress = document.getElementById('loadingProgress');
+
+        // Sample queries for testing
+        const sampleQueries = [
+            { country: 'US', query: 'iPhone 16 Pro, 128GB' },
+            { country: 'IN', query: 'boAt Airdopes 311 Pro' },
+            { country: 'GB', query: 'Samsung Galaxy S24' },
+            { country: 'DE', query: 'MacBook Air M2' }
+        ];
+
+        // Event Listeners
+        searchForm.addEventListener('submit', handleSearch);
+        sampleSearchBtn.addEventListener('click', useSampleQuery);
+
+        // Hide all sections
+        function hideAllSections() {
+            loadingSection.classList.add('hidden');
+            resultsSection.classList.add('hidden');
+            errorSection.classList.add('hidden');
+        }
+
+        // Show loading
+        function showLoading() {
+            hideAllSections();
+            loadingSection.classList.remove('hidden');
+            updateLoadingProgress('Searching across multiple websites...');
+        }
+
+        // Update loading progress
+        function updateLoadingProgress(message) {
+            loadingProgress.textContent = message;
+        }
+
+        // Show error
+        function showError(message) {
+            hideAllSections();
+            document.getElementById('errorMessage').textContent = message;
+            errorSection.classList.remove('hidden');
+        }
+
+        // Handle search
+        async function handleSearch(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(searchForm);
+            const searchData = {
+                country: formData.get('country'),
+                query: formData.get('query'),
+                minPrice: formData.get('minPrice') || undefined,
+                maxPrice: formData.get('maxPrice') || undefined,
+                maxResults: parseInt(formData.get('maxResults'))
+            };
+
+            if (!searchData.country || !searchData.query) {
+                showError('Please fill in all required fields.');
+                return;
+            }
+
+            showLoading();
+
+            try {
+                updateLoadingProgress('Sending request to price search API...');
+                
+                const response = await fetch('/api/prices/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(searchData)
+                });
+
+                updateLoadingProgress('Processing search results...');
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                displayResults(data);
+
+            } catch (error) {
+                console.error('Search error:', error);
+                showError(`Search failed: ${error.message}`);
+            }
+        }
+
+        // Use sample query
+        function useSampleQuery() {
+            const sample = sampleQueries[Math.floor(Math.random() * sampleQueries.length)];
+            document.getElementById('country').value = sample.country;
+            document.getElementById('query').value = sample.query;
+        }
+
+        // Display results
+        function displayResults(data) {
+            hideAllSections();
+
+            // Display metadata
+            displayMetadata(data.metadata);
+
+            // Display products
+            displayProducts(data.results);
+
+            resultsSection.classList.remove('hidden');
+        }
+
+        // Display search metadata
+        function displayMetadata(metadata) {
+            const metadataDiv = document.getElementById('searchMetadata');
+            
+            const statsHtml = metadata.priceStatistics ? `
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-green-600">${metadata.priceStatistics.min}</div>
+                        <div class="text-sm text-gray-600">Lowest Price</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-red-600">${metadata.priceStatistics.max}</div>
+                        <div class="text-sm text-gray-600">Highest Price</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-blue-600">${metadata.priceStatistics.average}</div>
+                        <div class="text-sm text-gray-600">Average Price</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-purple-600">${metadata.totalResults}</div>
+                        <div class="text-sm text-gray-600">Results Found</div>
+                    </div>
+                </div>
+            ` : '';
+
+            metadataDiv.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-800">Search Results for "${metadata.query}"</h3>
+                        <p class="text-gray-600">Country: ${metadata.country} | Processing Time: ${metadata.processingTime}ms</p>
+                        <p class="text-sm text-gray-500">Sites searched: ${metadata.sitesUsed.join(', ')}</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-lg font-bold text-blue-600">${metadata.totalResults} Results</div>
+                        <div class="text-sm text-gray-500">from ${metadata.sitesSearched} websites</div>
+                    </div>
+                </div>
+                ${statsHtml}
+            `;
+        }
+
+        // Display products
+        function displayProducts(products) {
+            const grid = document.getElementById('resultsGrid');
+            
+            if (products.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-12">
+                        <i class="fas fa-search text-4xl text-gray-400 mb-4"></i>
+                        <h3 class="text-xl font-semibold text-gray-600">No products found</h3>
+                        <p class="text-gray-500 mt-2">Try adjusting your search query or filters.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = products.map(product => `
+                <div class="result-card bg-white rounded-lg shadow-lg overflow-hidden">
+                    <div class="relative">
+                        ${product.image ? `
+                            <img src="${product.image}" alt="${product.productName}" class="w-full h-48 object-cover">
+                        ` : `
+                            <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                                <i class="fas fa-image text-4xl text-gray-400"></i>
+                            </div>
+                        `}
+                        <div class="absolute top-2 left-2">
+                            <span class="bg-blue-600 text-white px-2 py-1 rounded text-sm font-medium">#${product.rank}</span>
+                        </div>
+                        ${product.savings && product.savings.percentage > 0 ? `
+                            <div class="absolute top-2 right-2">
+                                <span class="bg-green-600 text-white px-2 py-1 rounded text-sm font-medium">
+                                    ${product.savings.percentage}% OFF
+                                </span>
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="p-4">
+                        <h4 class="font-semibold text-gray-800 mb-2 line-clamp-2">${product.productName}</h4>
+                        
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="text-2xl font-bold text-green-600">${product.price}</div>
+                            <div class="text-sm text-gray-500">${product.source}</div>
+                        </div>
+
+                        ${Object.keys(product.specifications || {}).length > 0 ? `
+                            <div class="mb-3">
+                                <div class="text-xs text-gray-500 mb-1">Specifications:</div>
+                                <div class="flex flex-wrap gap-1">
+                                    ${Object.entries(product.specifications).map(([key, value]) => 
+                                        `<span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">${value}</span>`
+                                    ).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+                            <span>Trust Score: ${(product.trustScore * 100).toFixed(0)}%</span>
+                            <span>Relevance: ${(product.relevanceScore * 100).toFixed(0)}%</span>
+                        </div>
+
+                        <a href="${product.link}" target="_blank" rel="noopener noreferrer" 
+                           class="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-2 rounded transition duration-200">
+                            <i class="fas fa-external-link-alt mr-2"></i>
+                            View Product
+                        </a>
+                    </div>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html> 
