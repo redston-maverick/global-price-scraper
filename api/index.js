@@ -1,12 +1,12 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 
-// Import routes
-const pricesRoutes = require('../src/routes/prices');
-const healthRoutes = require('../src/routes/health');
+// Import controller
+const priceController = require('../src/controllers/priceController');
 
 // Create Express app
 const app = express();
@@ -24,10 +24,10 @@ app.use(helmet({
   }
 }));
 
-// CORS configuration
+// CORS configuration - more permissive for API access
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://your-domain.vercel.app', 'https://price-scraper-redston.vercel.app']
+    ? [/\.vercel\.app$/, 'https://global-price-scraper-dummy-k7ca5qzpn.vercel.app']
     : ['http://localhost:3000', 'http://127.0.0.1:3000'],
   methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -56,8 +56,16 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static(path.join(__dirname, '../public')));
 
 // API routes
-app.use('/api/prices', pricesRoutes);
-app.use('/api/health', healthRoutes);
+app.use('/api/prices', priceController);
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
+});
 
 // Root route - serve the frontend
 app.get('/', (req, res) => {
